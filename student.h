@@ -11,10 +11,21 @@ typedef unsigned char student_ret_t;
 typedef unsigned char student_bool_t;
 typedef unsigned int student_base_t;
 
+struct _student_base_info {
+	unsigned char *name;
+	student_base_t num;
+};
+
+struct _student_scores {
+	float optional;
+	float experimental;
+	float required;
+	float total;
+};
+
 struct _student_object {
-	unsigned char 	*name;
-	student_base_t 	num;
-	float 		score;
+	struct _student_base_info info;
+	struct _student_scores scores;
 };
 
 typedef struct _student_object StudentAttribute;
@@ -28,7 +39,8 @@ void student_object_swap(StudentObject __restrict object0,
 void student_object_attr_export(StudentObject __restrict object,
 				StudentAttribute *__restrict attr);
 void student_object_modify(StudentObject object, StudentAttribute *attr);
-student_base_t student_object_name_count(StudentObject object);
+void student_object_scores_sum(StudentObject object);
+student_base_t student_object_get_name_length(StudentObject object);
 
 
 student_ret_t student_list_append(StudentList list, StudentAttribute *attr);

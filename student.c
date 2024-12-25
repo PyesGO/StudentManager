@@ -11,7 +11,7 @@ struct _student_list {
 #define list_next_is_null(list_addr) \
 	(((list_addr)->next) == NULL)
 #define list_is_empty(list_addr) \
-	((((list_addr)->student.name) == NULL) && list_next_is_null(list_addr))
+	((((list_addr)->student.info.name) == NULL) && list_next_is_null(list_addr))
 #define list_generate_next(list_addr_variable) \
 	list_addr_variable = ((list_addr_variable)->next)
 
@@ -22,13 +22,13 @@ struct _student_list {
 } while (0)
 
 
-student_base_t student_object_name_count(struct _student_object *object)
+student_base_t student_object_get_name_length(struct _student_object *object)
 {
 	student_base_t count;
 	unsigned char *name_addr;
 
 	count = 0;
-	name_addr = object->name;
+	name_addr = object->info.name;
 
 	while (*(name_addr++) != '\0')
 		++count;
@@ -45,13 +45,13 @@ static student_ret_t student_object_name_create(struct _student_object *object,
 						student_base_t name_length)
 {
 	/* 字符串尾部要放空字符'0'，所以length + 1 */
-	object->name =
+	object->info.name =
 		(unsigned char *)malloc(sizeof(unsigned char) * (name_length + 1));
 
-	if ((object->name) == NULL)
+	if ((object->info.name) == NULL)
 		return STUDENT_MEM_ERROR;
 
-	*(object->name + name_length) = '\0';
+	*(object->info.name + name_length) = '\0';
 	return STUDENT_OK;
 }
 
@@ -61,11 +61,11 @@ static void student_object_name_copy(struct _student_object *restrict src_object
 	student_base_t name_length;
 	unsigned char *src_name_addr, *dest_name_addr;
 
-	name_length = student_object_name_count(src_object);
+	name_length = student_object_get_name_length(src_object);
 	student_object_name_create(dest_object, name_length);
 
-	src_name_addr = src_object->name;
-	dest_name_addr = dest_object->name;
+	src_name_addr = src_object->info.name;
+	dest_name_addr = dest_object->info.name;
 
 	while (name_length--)
 		*(dest_name_addr++) = *(src_name_addr++);
@@ -73,8 +73,8 @@ static void student_object_name_copy(struct _student_object *restrict src_object
 
 static inline void student_object_name_remove(struct _student_object *object)
 {
-	if ((object->name) != NULL)
-		free(object->name);
+	if ((object->info.name) != NULL)
+		free(object->info.name);
 }
 
 static void student_list_init(struct _student_list *list)
@@ -193,7 +193,7 @@ struct _student_object *student_list_get_with_num(struct _student_list *list,
 
 	object = student_list_generate(&list);
 	while (object != NULL) {
-		if ((object->num) == num)
+		if ((object->info.num) == num)
 			return object;
 		else
 			object = student_list_generate(&list);
@@ -327,6 +327,21 @@ void student_object_swap(struct _student_object *restrict object0,
 	}
 }
 
+void student_object_scores_sum(struct _student_object *object)
+{
+	size_t member_count;
+	float *f32_object;
+
+	member_count = sizeof(struct _student_scores) / sizeof(float);
+	member_count -= 1;
+
+	f32_object = (float *)object;
+
+	object->scores.total = 0;
+	while (member_count--)
+		(object->scores.total) += *(f32_object++);
+}
+
 void student_list_sort_by_score(struct _student_list *list)
 {
 	student_base_t count;
@@ -339,8 +354,9 @@ void student_list_sort_by_score(struct _student_list *list)
 	while (--count) {
 		list_node = list;
 		while (! list_next_is_null(list_node)) {
-			if ((list_node->student.score) > (list_node->next->student.score))
-				student_object_swap((struct _student_object *)list_node,
+			if ((list_node->student.scores.total)
+			    > (list_node->next->student.scores.total))
+				student_object_swap((struct _student_object *)(list_node),
 						    (struct _student_object *)(list_node->next));
 
 			list_generate_next(list_node);
