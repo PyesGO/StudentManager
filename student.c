@@ -42,7 +42,7 @@ student_bool_t student_list_is_empty(struct _student_list *restrict list)
 }
 
 static student_ret_t student_object_name_create(struct _student_object *object,
-						size_t name_length)
+						student_base_t name_length)
 {
 	/* 字符串尾部要放空字符'0'，所以length + 1 */
 	object->name =
@@ -58,7 +58,7 @@ static student_ret_t student_object_name_create(struct _student_object *object,
 static void student_object_name_copy(struct _student_object *restrict src_object,
 				     struct _student_object *restrict dest_object)
 {
-	size_t name_length;
+	student_base_t name_length;
 	unsigned char *src_name_addr, *dest_name_addr;
 
 	name_length = student_object_name_count(src_object);
