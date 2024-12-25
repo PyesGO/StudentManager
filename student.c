@@ -1,7 +1,6 @@
 #include "student.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 
 
 struct _student_list {
