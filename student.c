@@ -11,7 +11,7 @@ struct _student_list {
 #define list_next_is_null(list_addr) \
 	(((list_addr)->next) == NULL)
 #define list_is_empty(list_addr) \
-	((((unsigned int *)(list_addr)) == ((void *)0)) && (list_next_is_null(list_addr)))
+	((*((unsigned int *)(list_addr)) == 0) && (list_next_is_null(list_addr)))
 #define list_generate_next(list_addr_variable) \
 	list_addr_variable = ((list_addr_variable)->next)
 
@@ -79,15 +79,13 @@ static inline void student_object_name_remove(struct _student_object *object)
 
 static void student_list_init(struct _student_list *list)
 {
-	unsigned char *u8_list;
 	unsigned int *u32_list;
 
-	u8_list = (unsigned char *)list;
 	u32_list = (unsigned int *)list;
 
 	*u32_list = 0;
-	*u8_list += (sizeof(struct _student_list) - sizeof(void *));
-	*u8_list = 0;
+	*u32_list += (sizeof(struct _student_list) - sizeof(void *)) / sizeof(unsigned int);
+	*u32_list = 0;
 }
 
 static void student_object_copy(struct _student_object *restrict object_src,
