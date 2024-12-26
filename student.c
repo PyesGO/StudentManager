@@ -84,7 +84,8 @@ static void student_list_init(struct _student_list *list)
 	u32_list = (unsigned int *)list;
 
 	*u32_list = 0;
-	*u32_list += (sizeof(struct _student_list) - sizeof(void *)) / sizeof(unsigned int);
+	*u32_list += 
+		((sizeof(struct _student_list) - sizeof(void *)) / sizeof(unsigned int));
 	*u32_list = 0;
 }
 
