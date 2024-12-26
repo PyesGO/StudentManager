@@ -39,11 +39,11 @@ void student_object_swap(StudentObject __restrict object0,
 void student_object_attr_export(StudentObject __restrict object,
 				StudentAttribute *__restrict attr);
 void student_object_modify(StudentObject object, StudentAttribute *attr);
-void student_object_scores_sum(StudentObject object);
+void student_object_scores_sum(StudentAttribute *attr);
 student_base_t student_object_get_name_length(StudentObject object);
 
 
-student_ret_t student_list_append(StudentList list, StudentAttribute *attr);
+StudentObject student_list_append(StudentList list, StudentAttribute *attr);
 student_ret_t student_list_remove(StudentList *__restrict list,
 				  StudentObject object);
 student_ret_t student_list_remove_with_num(StudentList *__restrict list,

@@ -11,7 +11,7 @@ struct _student_list {
 #define list_next_is_null(list_addr) \
 	(((list_addr)->next) == NULL)
 #define list_is_empty(list_addr) \
-	((((list_addr)->student.info.name) == NULL) && list_next_is_null(list_addr))
+	(((*((unsigned int *)(list_addr))) == 0) && (list_next_is_null(list_addr)))
 #define list_generate_next(list_addr_variable) \
 	list_addr_variable = ((list_addr_variable)->next)
 
@@ -202,8 +202,8 @@ struct _student_object *student_list_get_with_num(struct _student_list *list,
 	return NULL;
 }
 
-student_ret_t student_list_append(struct _student_list *list, 
-				  struct _student_object *attr)
+struct _student_object *student_list_append(struct _student_list *list,
+					    struct _student_object *attr)
 {
 	struct _student_object *object;
 
@@ -211,8 +211,9 @@ student_ret_t student_list_append(struct _student_list *list,
 		object = (struct _student_object *)list;
 	} else {
 		object = student_object_create();
+
 		if (object == NULL)
-			return STUDENT_MEM_ERROR;
+			return object;
 		if (! list_next_is_null(list))
 			list = (struct _student_list *)student_list_get_last(list);
 
@@ -221,13 +222,13 @@ student_ret_t student_list_append(struct _student_list *list,
 
 	student_object_copy(attr, object);
 	student_object_name_copy(attr, object);
-	return STUDENT_OK;
+	return object;
 }
 
 student_ret_t student_list_remove(struct _student_list **list,
 				  struct _student_object *object)
 {
-	struct _student_list *previous_list_node, *current_list_node;
+	struct _student_list *previous_list_node;
 
 	if ((struct _student_object *)(*list) == object) {
 		if (list_next_is_null(*list)) {
@@ -237,28 +238,26 @@ student_ret_t student_list_remove(struct _student_list **list,
 		} else {
 			*list = (*list)->next;
 			student_object_free(object);
+			return STUDENT_OK;
 		}
-		return STUDENT_OK;
 	}
 
-	/* list head */
-	previous_list_node = (struct _student_list *)student_list_generate(&(*list));
-	/* list->next */
-	current_list_node = (struct _student_list *)student_list_generate(&(*list));
+	previous_list_node = &(**list);
+	list = &((*list)->next);
 
-	while (current_list_node != NULL) {
-		if (current_list_node == (struct _student_list *)object) {
-			if (! list_next_is_null(current_list_node))
-				previous_list_node->next = current_list_node->next;
-			else
+	while (*list != NULL) {
+		if (*list == (struct _student_list *)object) {
+			if (list_next_is_null(*list))
 				previous_list_node->next = NULL;
+			else
+				previous_list_node->next = (*list)->next;
 
 			student_object_free(object);
 			return STUDENT_OK;
 		}
 
-		previous_list_node = current_list_node;
-		current_list_node = (struct _student_list *)student_list_generate(&(*list));
+		previous_list_node = *list;
+		list = &((*list)->next);
 	}
 
 	return STUDENT_CAN_NOT_REMOVE;
@@ -335,7 +334,7 @@ void student_object_scores_sum(struct _student_object *object)
 	member_count = sizeof(struct _student_scores) / sizeof(float);
 	member_count -= 1;
 
-	f32_object = (float *)object;
+	f32_object = (float *)(&(object->scores));
 
 	object->scores.total = 0;
 	while (member_count--)
@@ -366,15 +365,14 @@ void student_list_sort_by_score(struct _student_list *list)
 
 void student_list_delete(struct _student_list *list)
 {
-	if (list_is_empty(list)) {
-		free(list);
-		return;
-	}
+	if (list_is_empty(list))
+		goto free_self;
 
 	while (student_list_remove(&list, (struct _student_object *)list) 
 	      != STUDENT_CAN_NOT_REMOVE)
 		continue;
-
+	
+free_self:
 	free(list);
 }
 

@@ -2,49 +2,28 @@
 
 #include <stdio.h>
 
-#define NAME_MAX_LEN 40
-#define DATA_TITLE "学号\t名字\t成绩\n"
+#define NAME_MAX_LEN 80
+
+#define INFO_TITLE 	  "学号\t姓名\t选修课\t实验课\t必修课\t总分"
+#define INFO_FORMAT 	  "%u\t%s\t%.1f\t%.1f\t%.1f\t%.1f"
+#define INFO_DATA_FILE 	  "data.bin"
 
 #define print_with_format(format, ...) \
 	printf("\t\t" format, ##__VA_ARGS__)
+
+#define print(str) \
+	print_with_format("%s\n", str)
+
+#define print_without_endline(str) \
+	print_with_format("%s", str)
+
+#define print_student_info_title() \
+	print(INFO_TITLE) 
 
 
 /* 定义一个全局学生列表，用来存储所有学生的信息 */
 static StudentList student_list;
 
-
-/* 清理标准输入（stdin）的多余字符 */
-void clear_stdin(void)
-{
-	/* 获取字符直到为换行符时（回车）停止 */
-	while (getchar() != '\n')
-		continue;
-}
-
-/* 自定义输出格式 
- * 参数:
- * 	- string 要打印的字符串
- * 	- end 末尾要追加的字符（一般为换行符），
- * 	  省得每次printf后面加'\n'了，哈哈
- */
-void priv_print(char *string, char end)
-{
-	printf("\t\t%s%c", string, end);
-}
-
-/* 自定义输出，默认追加换行符
- * 相当于 printf("...其他字符\n")
- */
-void print(char *str)
-{
-	priv_print(str, '\n');
-}
-
-/* 自定义输出（不追加换行符）*/
-void print_nonew_line(char *str)
-{
-	priv_print(str, '\0');
-}
 
 /* 展示菜单 */
 void show_menu(void)
@@ -60,7 +39,7 @@ void show_menu(void)
 	print("|		8.显示所有学生信息	  |");
 	print("|		0.退出系统		  |");
 	print("|-----------------------------------------|");
-	print_nonew_line("请选择<0-8> -> ");
+	print_without_endline("请选择<0-8> -> ");
 }
 
 /* 显示所传入的学生信息
@@ -108,17 +87,9 @@ void show_student(StudentObject object)
 	if (attr.info.name == NULL)
 		return;
 
-	/* 这行应该不用解释，输出信息 */
-	print_with_format("%d\t%s\t%.1f\n", attr.info.num, attr.info.name, attr.scores.total);
-}
-
-/* 展示标题
- * 即“学号 姓名 成绩”
- */
-void show_title(void)
-{
-	/* 调用了无追加换行符的print */
-	print_nonew_line(DATA_TITLE);
+	print_with_format(INFO_FORMAT "\n", attr.info.num, attr.info.name,
+		   	  attr.scores.optional, attr.scores.experimental,
+		   	  attr.scores.required, attr.scores.total);
 }
 
 /* 把记录中的所有学生信息显示到屏幕上 */
@@ -183,8 +154,8 @@ void show_all_student(void)
 	/* 此时返回“object”为学生列表中的第一个“学生对象” */
 	object = student_list_generate(&list_generator);
 
-	/* 先显示一下标题 */
-	show_title();
+
+	print_student_info_title();
 
 	/* 循环迭代学生列表里的元素（直到最后一个停止） */
 	while (object != NULL) {
@@ -198,13 +169,32 @@ void show_all_student(void)
 	}
 }
 
+/* 清理标准输入（stdin）的多余字符 */
+void clear_stdin(void)
+{
+	/* 获取字符直到为换行符时（回车）停止 */
+	while (getchar() != '\n')
+		continue;
+}
+
+unsigned char getchar_lower_case(void)
+{
+	unsigned char got_char;
+
+	got_char = getchar();
+	if ((got_char > 64) && (got_char < 91))
+		got_char += 0x20;
+
+	return got_char;
+}
+
 /* 从标准输入（一般是控制台）中读取字符
  * 参数：
  * 	- attr 学生的属性，是一个指针（要修改内容就要用到指针）
  * 	- name_max_length 名字最大长度（主要是限制从控制台获取的名字长度）
  */
-void get_student_from_stdin(StudentAttribute *attr,
-			    student_base_t name_max_length)
+void get_student_info_from_stdin(StudentAttribute *attr,
+				 student_base_t name_max_length)
 {
 	/* 字符串的偏移量，
 	 * 通俗讲就是字符串中第几个字符的意思
@@ -217,7 +207,7 @@ void get_student_from_stdin(StudentAttribute *attr,
 	unsigned char got_char;
 
 	/* 无追加换行符打印 */
-	print_nonew_line("请输入学生姓名: ");
+	print_without_endline("请输入学生姓名: ");
 
 	/* 先将字符串偏移置零，
 	 * 使其指向字符串的第一个字符
@@ -244,7 +234,7 @@ void get_student_from_stdin(StudentAttribute *attr,
 			 */
 			offset = 0;
 			print_with_format("超出名字最大长度%d个字符！", name_max_length - 1);
-			print_nonew_line("请重新输入：");
+			print_without_endline("请重新输入：");
 			/* 清除多余的字符 */
 			clear_stdin();
 		}
@@ -258,37 +248,69 @@ void get_student_from_stdin(StudentAttribute *attr,
 	 */
 	*((attr->info.name) + offset) = '\0';
 
-	print_nonew_line("请输入学号: ");
+	print_without_endline("请输入学号: ");
 	scanf("%d", &(attr->info.num));
 
-	print_nonew_line("请输入该学生的成绩: ");
-	scanf("%f", &(attr->scores.total));
+	print_without_endline("请输入选修课成绩：");
+	scanf("%f", &(attr->scores.optional));
+
+	print_without_endline("请输入必修课成绩：");
+	scanf("%f", &(attr->scores.required));
+
+	print_without_endline("请输入实验课成绩：");
+	scanf("%f", &(attr->scores.experimental));
+
+	student_object_scores_sum(attr);
 }
 
 void insert_student(void)
 {
 	StudentAttribute attr;
+	StudentObject object;
 	unsigned char name[NAME_MAX_LEN];
 
 	attr.info.name = name;
-	get_student_from_stdin(&attr, NAME_MAX_LEN);
-	student_list_append(student_list, &attr);
 
-	show_title();
-	show_student(student_list_get_last(student_list));
+	clear_stdin();
+	get_student_info_from_stdin(&attr, NAME_MAX_LEN);
+	object = student_list_append(student_list, &attr);
+	if (object == NULL) {
+		print("申请内存失败，未能成功添加该学生信息");
+		return;
+	}
+
+	print_student_info_title();
+	show_student(object);
 }
 
 void remove_student(void)
 {
 	StudentAttribute attr;
+	StudentObject object;
 
-	print_nonew_line("请输入要删除的学号：");
-	scanf("%d", &(attr.info.num));
+	clear_stdin();
+	print_without_endline("请输入要删除的学号：");
+	scanf("%u", &(attr.info.num));
 
-	if (student_list_remove_with_num(&student_list, attr.info.num) == STUDENT_OK)
-		print("成功删除！");
-	else
-		print("学生不存在");
+	object = student_list_get_with_num(student_list, attr.info.num);
+	if (object == NULL) {
+		print("未找到该学号的学生");
+		return;
+	}
+
+	print("找到如下学生：");
+	print_student_info_title();
+	show_student(object);
+
+	clear_stdin();
+	print_without_endline("确认删除吗？[Y/N] ");
+	if (getchar_lower_case() == 'y') {
+		student_list_remove(&student_list, object);
+		print("已执行删除！");
+		print("请在返回主菜单后选择序号“1”进行录入以保存设置");
+	} else {
+		print("用户取消，未执行删除");
+	}
 }
 
 void find_student(void)
@@ -296,7 +318,8 @@ void find_student(void)
 	StudentAttribute attr;
 	StudentObject object;
 
-	print_nonew_line("请输入要查找的学号：");
+	clear_stdin();
+	print_without_endline("请输入要查找的学号：");
 	scanf("%d", &(attr.info.num));
 
 	object = student_list_get_with_num(student_list, attr.info.num);
@@ -305,7 +328,7 @@ void find_student(void)
 		return;
 	}
 
-	show_title();
+	print_student_info_title();
 	show_student(object);
 }
 
@@ -326,9 +349,9 @@ void modify_student(void)
 	StudentObject object;
 	unsigned char name[NAME_MAX_LEN];
 
-	print_nonew_line("请输入要修改学生的学号：");
-	scanf("%d", &(attr.info.num));
 	clear_stdin();
+	print_without_endline("请输入要修改学生的学号：");
+	scanf("%u", &(attr.info.num));
 
 	object = student_list_get_with_num(student_list, attr.info.num);
 	if (object == NULL) {
@@ -336,29 +359,36 @@ void modify_student(void)
 		return;
 	}
 
+	print("找到如下学生：");
+	print_student_info_title();
+	show_student(object);
+
 	attr.info.name = name;
-	get_student_from_stdin(&attr, NAME_MAX_LEN);
+
+	clear_stdin();
+	get_student_info_from_stdin(&attr, NAME_MAX_LEN);
 	student_object_modify(object, &attr);
 
-	show_title();
+	print("成功修改");
+	print_student_info_title();
 	show_student(object);
 }
 
 void pause(void)
 {
-	print_nonew_line("按下回车键继续...");
+	print_without_endline("按下回车键继续...");
 	clear_stdin();
 	getchar();
 }
 
 void load_from_file(void)
 {
-	int fstat;
 	FILE *fp;
+	int fstat;
 	StudentAttribute attr;
 	unsigned char name[NAME_MAX_LEN];
 	
-	fp = fopen("data.txt", "r");
+	fp = fopen(INFO_DATA_FILE, "rb");
 	if (fp == NULL) {
 		print("data文件不存在！");
 		return;
@@ -366,12 +396,15 @@ void load_from_file(void)
 		print("检测到data文件，准备导入");
 	}
 
+	fstat = ~EOF;
 	attr.info.name = name;
 	while (fstat != EOF) {
-		fstat = fscanf(fp, "%u\t%s\t%f", &(attr.info.num), attr.info.name, &(attr.scores.total));
+		fstat = fscanf(fp, "%s", attr.info.name);
 		if (fstat == EOF)
 			continue;
 
+		fgetc(fp);
+		fread(&(attr.info.num), 1, (sizeof(StudentAttribute) - sizeof(unsigned char *)), fp);
 		student_list_append(student_list, &attr);
 	}
 
@@ -387,11 +420,16 @@ void save_to_file(void)
 	StudentAttribute attr;
 
 	if (student_list_is_empty(student_list)) {
-		print("当前无学生信息录入");
-		return;
+		clear_stdin();
+		print("注意：当前为空列表，将清空文件原有的所有数据");
+		print_without_endline("确认继续吗？[Y/N] ");
+		if (getchar_lower_case() != 'y') {
+			print("用户取消，未修改文件");
+			return;
+		}
 	}
 
-	fp = fopen("data.txt", "w");
+	fp = fopen(INFO_DATA_FILE, "wb");
 	if (fp == NULL) {
 		print("打开文件失败！");
 		return;
@@ -401,7 +439,11 @@ void save_to_file(void)
 	object = student_list_generate(&list_generator);
 	while (object != NULL) {
 		student_object_attr_export(object, &attr);
-		fprintf(fp, "%u\t%s\t%f\n", attr.info.num, attr.info.name, attr.scores.total);
+
+		fprintf(fp, "%s", attr.info.name);
+		fputc(' ', fp);
+		fwrite(&(attr.info.num), 1, (sizeof(StudentAttribute) - sizeof(unsigned char *)), fp);
+
 		object = student_list_generate(&list_generator);
 	}
 
@@ -429,22 +471,18 @@ int main(void)
 			pause();
 			break;
 		case '2':
-			clear_stdin();
 			find_student();
 			pause();
 			break;
 		case '3':
-			clear_stdin();
 			remove_student();
 			pause();
 			break;
 		case '4':
-			clear_stdin();
 			modify_student();
 			pause();
 			break;
 		case '5':
-			clear_stdin();
 			insert_student();
 			pause();
 			break;
