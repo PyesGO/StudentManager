@@ -11,7 +11,7 @@ struct _student_list {
 #define list_next_is_null(list_addr) \
 	(((list_addr)->next) == NULL)
 #define list_is_empty(list_addr) \
-	(((*((unsigned int *)(list_addr))) == 0) && (list_next_is_null(list_addr)))
+	((((unsigned int *)(list_addr)) == ((void *)0)) && (list_next_is_null(list_addr)))
 #define list_generate_next(list_addr_variable) \
 	list_addr_variable = ((list_addr_variable)->next)
 
@@ -79,28 +79,21 @@ static inline void student_object_name_remove(struct _student_object *object)
 
 static void student_list_init(struct _student_list *list)
 {
-	size_t u8_bytes, u32_bytes;
 	unsigned char *u8_list;
 	unsigned int *u32_list;
-	
-	u8_bytes = sizeof(struct _student_list);
-	u32_bytes = u8_bytes / 4;
 
 	u8_list = (unsigned char *)list;
 	u32_list = (unsigned int *)list;
 
-	while (u32_bytes--) {
-		*(u32_list++) = 0;
-		u8_bytes -= 4;
-	}
-	while (u8_bytes--)
-		*(u8_list++) = 0;
+	*u32_list = 0;
+	*u8_list += (sizeof(struct _student_list) - sizeof(void *));
+	*u8_list = 0;
 }
 
 static void student_object_copy(struct _student_object *restrict object_src,
 				struct _student_object *restrict object_dest)
 {
-	size_t u8_bytes, u32_bytes;
+	size_t u8_bytes, u32_bytes, uint32_size;
 	unsigned char *u8_src, *u8_dest;
 	unsigned int *u32_src, *u32_dest;
 
@@ -108,16 +101,17 @@ static void student_object_copy(struct _student_object *restrict object_src,
 	u8_dest = (unsigned char *)object_dest;
 	u32_src = (unsigned int *)object_src;
 	u32_dest = (unsigned int *)object_dest;
+	uint32_size = sizeof(unsigned int);
 
 	u8_bytes = sizeof(struct _student_object);
-	if (u8_bytes >= 4)
-		u32_bytes = u8_bytes / 4;
+	if (u8_bytes >= uint32_size)
+		u32_bytes = u8_bytes / uint32_size;
 	else
 		u32_bytes = 0;
 
 	while (u32_bytes--) {
 		*(u32_dest++) = *(u32_src++);
-		u8_bytes -= 4;
+		u8_bytes -= uint32_size;
 	}
 	while (u8_bytes--) {
 		*(u8_dest++) = *(u8_src++);
@@ -295,7 +289,7 @@ student_base_t student_list_count(struct _student_list *list)
 void student_object_swap(struct _student_object *restrict object0,
 			 struct _student_object *restrict object1)
 {
-	size_t u8_bytes, u32_bytes;
+	size_t u8_bytes, u32_bytes, uint32_size;
 	unsigned char *u8_object0, *u8_object1;
 	unsigned int *u32_object0, *u32_object1;
 	
@@ -305,9 +299,10 @@ void student_object_swap(struct _student_object *restrict object0,
 	u8_object1 = (unsigned char *)object1;
 	u32_object0 = (unsigned int *)object0;
 	u32_object1 = (unsigned int *)object1;
+	uint32_size = sizeof(unsigned int);
 
-	if (u8_bytes >= 4)
-		u32_bytes = u8_bytes / 4;
+	if (u8_bytes >= uint32_size)
+		u32_bytes = u8_bytes / uint32_size;
 	else
 		u32_bytes = 0;
 
@@ -316,7 +311,7 @@ void student_object_swap(struct _student_object *restrict object0,
 		++u32_object0;
 		++u32_object1;
 
-		u8_bytes -= 4;
+		u8_bytes -= uint32_size;
 	}
 	
 	while (u8_bytes--) {
