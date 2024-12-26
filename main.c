@@ -177,6 +177,9 @@ void clear_stdin(void)
 		continue;
 }
 
+/* 获取小写字符，如果输入的是大写字母，
+ * 则会自动转换为小写字符
+ */
 unsigned char getchar_lower_case(void)
 {
 	unsigned char got_char;
@@ -260,39 +263,58 @@ void get_student_info_from_stdin(StudentAttribute *attr,
 	print_without_endline("请输入实验课成绩：");
 	scanf("%f", &(attr->scores.experimental));
 
+	/* 对学生的所有成绩求和 */
 	student_object_scores_sum(attr);
 }
 
+/* 插入学生信息 */
 void insert_student(void)
 {
+	/* 声明一个学生属性 */
 	StudentAttribute attr;
+	/* 声明一个学生对象（一个学生个体） */
 	StudentObject object;
+	/* 用于临时保存输入的名字 */
 	unsigned char name[NAME_MAX_LEN];
 
+	/* 将“name”的指针赋值到学生属性 */
 	attr.info.name = name;
 
+	/* 输入文本前先清理下多余字符 */
 	clear_stdin();
+	/* 从标准输入中获取学生信息，并写入到“attr”属性变量 */
 	get_student_info_from_stdin(&attr, NAME_MAX_LEN);
+	/* 将“attr”属性变量转化为学生对象存储到列表中 */
 	object = student_list_append(student_list, &attr);
+	/* 如果返回的“object”为NULL（空），则是内存分配出错
+	 * 否则应该返回被添加“object”（学生对象）
+	 */
 	if (object == NULL) {
 		print("申请内存失败，未能成功添加该学生信息");
 		return;
 	}
 
+	/* 先打印标题 */
 	print_student_info_title();
+	/* 显示学生信息 */
 	show_student(object);
 }
 
+/* 删除学生信息 */
 void remove_student(void)
 {
+	/* 定义一个学生属性 */
 	StudentAttribute attr;
+	/* 定义一个学生对象 */
 	StudentObject object;
 
 	clear_stdin();
 	print_without_endline("请输入要删除的学号：");
 	scanf("%u", &(attr.info.num));
 
+	/* 依据学号返回学生对象 */
 	object = student_list_get_with_num(student_list, attr.info.num);
+	/* 如果返回为空，表面未找到该学号的学生 */
 	if (object == NULL) {
 		print("未找到该学号的学生");
 		return;
@@ -304,7 +326,9 @@ void remove_student(void)
 
 	clear_stdin();
 	print_without_endline("确认删除吗？[Y/N] ");
+	/* 调用仅获取小写字符的getchar */
 	if (getchar_lower_case() == 'y') {
+		/* 将学生对象从列表中删除 */
 		student_list_remove(&student_list, object);
 		print("已执行删除！");
 		print("请在返回主菜单后选择序号“1”进行录入以保存设置");
@@ -313,15 +337,19 @@ void remove_student(void)
 	}
 }
 
+/* 查找学生 */
 void find_student(void)
 {
+	/* 学生属性 */
 	StudentAttribute attr;
+	/* 学生对象 */
 	StudentObject object;
 
 	clear_stdin();
 	print_without_endline("请输入要查找的学号：");
 	scanf("%d", &(attr.info.num));
 
+	/* 依据学号获取学生对象 */
 	object = student_list_get_with_num(student_list, attr.info.num);
 	if (object == NULL) {
 		print("未找到该学生");
@@ -332,27 +360,41 @@ void find_student(void)
 	show_student(object);
 }
 
+/* 计算学生总数 */
 void count_students(void)
 {
+	/* 直接调用“student_list_count”函数返回列表中学生对象的个数
+	 * 并且打印到屏幕上
+	 */
 	print_with_format("总共%d人\n", student_list_count(student_list));
 }
 
+/* 学生信息排序 */
 void order_students(void)
 {
+	/* 直接调用“student.c”中的列表排序函数 */
 	student_list_sort_by_score(student_list);
+	/* 显示所有学生 */
 	show_all_student();
 }
 
 void modify_student(void)
 {
+	/* 学生属性 */
 	StudentAttribute attr;
+	/* 学生对象 */
 	StudentObject object;
+	/* 声明一个临时储存名字的字符数组 */
 	unsigned char name[NAME_MAX_LEN];
+
+	/* 将临时“name”赋值给学生属性变量“attr” */
+	attr.info.name = name;
 
 	clear_stdin();
 	print_without_endline("请输入要修改学生的学号：");
 	scanf("%u", &(attr.info.num));
 
+	/* 依据学号获取学生对象 */
 	object = student_list_get_with_num(student_list, attr.info.num);
 	if (object == NULL) {
 		print("指定的学生不存在！");
@@ -363,10 +405,9 @@ void modify_student(void)
 	print_student_info_title();
 	show_student(object);
 
-	attr.info.name = name;
-
 	clear_stdin();
 	get_student_info_from_stdin(&attr, NAME_MAX_LEN);
+	/* 调用学生对象修改函数 */
 	student_object_modify(object, &attr);
 
 	print("成功修改");
@@ -374,6 +415,7 @@ void modify_student(void)
 	show_student(object);
 }
 
+/* 暂停函数 */
 void pause(void)
 {
 	print_without_endline("按下回车键继续...");
@@ -381,13 +423,21 @@ void pause(void)
 	getchar();
 }
 
+/* 从文件中载入数据 */
 void load_from_file(void)
 {
+	/* 文件句柄 */
 	FILE *fp;
+	/* 文件状态，
+	 * 用来判断是否读取到文件的末尾
+	 */
 	int fstat;
+	/* 学生属性 */
 	StudentAttribute attr;
+	/* 临时存储名字 */
 	unsigned char name[NAME_MAX_LEN];
 	
+	/* 以“二进制读取”的模式打开文件 */
 	fp = fopen(INFO_DATA_FILE, "rb");
 	if (fp == NULL) {
 		print("data文件不存在！");
@@ -396,15 +446,23 @@ void load_from_file(void)
 		print("检测到data文件，准备导入");
 	}
 
+	/* 由于下面的while要判断fstat是否等于EOF，
+	 * 这里就初始化为EOF的相反数（EOF本质是一个数字）
+	 */
 	fstat = ~EOF;
+	/* 将临时变量赋值给学生属性“attr” */
 	attr.info.name = name;
+	/* 循环读取直到文件末尾才结束 */
 	while (fstat != EOF) {
 		fstat = fscanf(fp, "%s", attr.info.name);
 		if (fstat == EOF)
 			continue;
 
+		/* 读取一个空字符，并且扔掉 */
 		fgetc(fp);
+		/* 读取学生信息数据，并写入到“attr”变量 */
 		fread(&(attr.info.num), 1, (sizeof(StudentAttribute) - sizeof(unsigned char *)), fp);
+		/* 将学生属性转化为学生对象，并添加至学生列表 */
 		student_list_append(student_list, &attr);
 	}
 
@@ -415,10 +473,12 @@ void load_from_file(void)
 void save_to_file(void)
 {
 	FILE *fp;
+	/* 迭代器 */
 	StudentList list_generator;
 	StudentObject object;
 	StudentAttribute attr;
 
+	/* 检查学生列表是否为空列表 */
 	if (student_list_is_empty(student_list)) {
 		clear_stdin();
 		print("注意：当前为空列表，将清空文件原有的所有数据");
@@ -429,21 +489,32 @@ void save_to_file(void)
 		}
 	}
 
+	/* 以“二进制写入”的模式打开文件 */
 	fp = fopen(INFO_DATA_FILE, "wb");
 	if (fp == NULL) {
 		print("打开文件失败！");
 		return;
 	}
 
+	/* 初始化迭代器 */
 	list_generator = student_list;
+	/* 先迭代第一个学生对象 */
 	object = student_list_generate(&list_generator);
 	while (object != NULL) {
+		/* 将学生对象转换问可访问的属性 */
 		student_object_attr_export(object, &attr);
 
+		/* 先把字符写入到文件中 */
 		fprintf(fp, "%s", attr.info.name);
+		/* 字符末尾增加一个空字符，以跟后面的二进制数据隔开 */
 		fputc(' ', fp);
+		/* 将学生属性直接以二进制的形式写入到文件中，
+		 * 这里减去“unsinged char *”的大小是指已经写
+		 * 入进去的学生姓名字符串的大小
+		 */
 		fwrite(&(attr.info.num), 1, (sizeof(StudentAttribute) - sizeof(unsigned char *)), fp);
 
+		/* 获取学生列表的下一个学生对象 */
 		object = student_list_generate(&list_generator);
 	}
 
@@ -453,17 +524,22 @@ void save_to_file(void)
 
 int main(void)
 {
+	/* 是否继续循环主菜单 */
 	unsigned char continue_flag;
 
+	/* 创建一个学生列表 */
 	student_list = student_list_create();
+	/* 从文件中载入学生信息 */
 	load_from_file();
 
+	/* 开始循环主菜单 */
 	continue_flag = 1;
 	while (continue_flag) {
 		show_menu();
 
 		switch (getchar()) {
 		case '0':
+			/* 停止循环主菜单 */
 			continue_flag = 0;
 			break;
 		case '1':
@@ -507,6 +583,7 @@ int main(void)
 		}
 	}
 
+	/* 退出前清空学生列表 */
 	student_list_delete(student_list);
 	return 0;
 }
