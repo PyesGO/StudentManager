@@ -340,7 +340,7 @@ void student_list_sort_by_score(struct _student_list *list)
 	student_base_t count;
 	struct _student_list *list_node;
 
-	if (list_is_empty(list) || list_next_is_null(list))
+	if (list_is_empty(list))
 		return;
 	
 	count = student_list_count(list);
