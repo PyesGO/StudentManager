@@ -199,9 +199,6 @@ void get_student_info_from_stdin(StudentAttribute *attr,
 		/* 判断是否超出了字符数的最大限制，
 		 * 减1是因为字符串末尾要留出一个字节
 		 * 来存放空字符'\0'
-		 *
-		 * 为啥：
-		 * 	这个是C语言“字符串”的定义
 		 */
 		if (offset >= (name_max_length - 1)) {
 			/* 如果超出了，字符串偏移置零，
@@ -275,9 +272,9 @@ void insert_student(void)
 /* 删除学生信息 */
 void remove_student(void)
 {
-	/* 定义一个学生属性 */
+	/* 声明一个学生属性 */
 	StudentAttribute attr;
-	/* 定义一个学生对象 */
+	/* 声明一个学生对象 */
 	StudentObject object;
 
 	clear_stdin();
