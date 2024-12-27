@@ -27,7 +27,7 @@
 |`student_object_scores_sum`|`StudentAttribute`|无|对学生的所有成绩进行求和|
 |`student_object_get_name_length`|`StudentObject`|`student_base_t`|返回学生对象的名字长度|
 
-`student.c`对`StudentObject`的耦合并不高，保持`_student_object`结构体中`info.name`以及`scores.total`的存在即可，除此之外其它操作都使用指针，并不关心结构体内部的具体内容，方便对其改写或扩展。
+`student.c`对`StudentObject`的耦合并不高，保持`_student_object`结构体中`info.name`和`info.num`以及`scores.total`的存在即可，除此之外其它操作都使用指针，并不关心结构体内部的具体内容，方便对其改写或扩展。
 
 模块具体使用方式可查看`example.c`中的源代码。
 ### Example 程序图片预览
