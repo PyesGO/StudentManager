@@ -1,4 +1,5 @@
 CC = gcc
+W32CC = x86_64-w64-mingw32-gcc
 
 CFLAGS += -Wall
 MAKEFLAGS += -rR
@@ -8,6 +9,14 @@ __all: a.out
 
 a.out: *.c
 	$(CC) $(CFLAGS) -o $@ $^
+
+windows: StudentManager.exe StudentManager-GBK.exe
+
+StudentManager.exe:
+	$(W32CC) $(CFLAGS) -o $@
+
+StudentManager-GBK.exe:
+	$(W32CC) $(CFLAGS) -fexec-charset=GBK -o $@
 
 PHONY += clean
 clean:
