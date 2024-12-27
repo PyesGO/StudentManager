@@ -36,9 +36,10 @@ StudentList student_list_create(void);
 
 void student_object_swap(StudentObject __restrict object0,
 			 StudentObject __restrict object1);
-void student_object_attr_export(StudentObject __restrict object,
-				StudentAttribute *__restrict attr);
-void student_object_modify(StudentObject object, StudentAttribute *attr);
+void student_object_attr_export(StudentObject object,
+				StudentAttribute *attr);
+void student_object_modify(StudentObject object,
+			   StudentAttribute *attr);
 void student_object_scores_sum(StudentAttribute *attr);
 student_base_t student_object_get_name_length(StudentObject object);
 
@@ -49,13 +50,14 @@ student_ret_t student_list_remove(StudentList *__restrict list,
 student_ret_t student_list_remove_with_num(StudentList *__restrict list,
 					   student_base_t number);
 void student_list_sort_by_score(StudentList list);
-void student_list_delete(StudentList list);
+void student_list_clear(StudentList *__restrict list);
+void student_list_delete(StudentList *__restrict list);
 StudentObject student_list_get_last(StudentList list);
 StudentObject student_list_get_with_num(StudentList list,
 					student_base_t number);
-StudentObject student_list_generate(StudentList *list);
+StudentObject student_list_generate(StudentList *list_generator);
 student_base_t student_list_count(StudentList list);
-student_bool_t student_list_is_empty(StudentList __restrict list);
+student_bool_t student_list_is_empty(StudentList list);
 
 
 #endif // __STUDENT_H
