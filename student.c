@@ -21,6 +21,8 @@ struct _student_list {
 	variable0 = (variable0) ^ (variable1);		\
 } while (0)
 
+#define uint32_sizeof (sizeof(unsigned int))
+
 
 student_base_t student_object_get_name_length(struct _student_object *object)
 {
@@ -36,7 +38,7 @@ student_base_t student_object_get_name_length(struct _student_object *object)
 	return count;
 }
 
-student_bool_t student_list_is_empty(struct _student_list *restrict list)
+student_bool_t student_list_is_empty(struct _student_list *list)
 {
 	return list_is_empty(list);
 }
@@ -82,17 +84,15 @@ static void student_list_init(struct _student_list *list)
 	unsigned int *u32_list;
 
 	u32_list = (unsigned int *)list;
+	*u32_list = 0;
 
-	*u32_list = 0;
-	*u32_list += 
-		((sizeof(struct _student_list) - sizeof(void *)) / sizeof(unsigned int));
-	*u32_list = 0;
+	list->next = NULL;
 }
 
 static void student_object_copy(struct _student_object *restrict object_src,
 				struct _student_object *restrict object_dest)
 {
-	size_t u8_bytes, u32_bytes, uint32_size;
+	size_t u8_bytes, u32_bytes;
 	unsigned char *u8_src, *u8_dest;
 	unsigned int *u32_src, *u32_dest;
 
@@ -100,17 +100,16 @@ static void student_object_copy(struct _student_object *restrict object_src,
 	u8_dest = (unsigned char *)object_dest;
 	u32_src = (unsigned int *)object_src;
 	u32_dest = (unsigned int *)object_dest;
-	uint32_size = sizeof(unsigned int);
 
 	u8_bytes = sizeof(struct _student_object);
-	if (u8_bytes >= uint32_size)
-		u32_bytes = u8_bytes / uint32_size;
+	if (u8_bytes >= uint32_sizeof)
+		u32_bytes = u8_bytes / uint32_sizeof;
 	else
 		u32_bytes = 0;
 
 	while (u32_bytes--) {
 		*(u32_dest++) = *(u32_src++);
-		u8_bytes -= uint32_size;
+		u8_bytes -= uint32_sizeof;
 	}
 	while (u8_bytes--) {
 		*(u8_dest++) = *(u8_src++);
@@ -123,8 +122,8 @@ void student_object_attr_export(struct _student_object *restrict object,
 	student_object_copy(object, attr);
 }
 
-void student_object_modify(struct _student_object *object,
-			   struct _student_object *attr)
+void student_object_modify(struct _student_object *restrict object,
+			   struct _student_object *restrict attr)
 {
 	student_object_name_remove(object);
 	student_object_copy(attr, object);
@@ -218,7 +217,7 @@ struct _student_object *student_list_append(struct _student_list *list,
 	return object;
 }
 
-student_ret_t student_list_remove(struct _student_list **list,
+student_ret_t student_list_remove(struct _student_list **restrict list,
 				  struct _student_object *object)
 {
 	struct _student_list *previous_list_node;
@@ -256,7 +255,7 @@ student_ret_t student_list_remove(struct _student_list **list,
 	return STUDENT_CAN_NOT_REMOVE;
 }
 
-student_ret_t student_list_remove_with_num(struct _student_list **list,
+student_ret_t student_list_remove_with_num(struct _student_list **restrict list,
 					   student_base_t num)
 {
 	struct _student_object *object;
@@ -288,7 +287,7 @@ student_base_t student_list_count(struct _student_list *list)
 void student_object_swap(struct _student_object *restrict object0,
 			 struct _student_object *restrict object1)
 {
-	size_t u8_bytes, u32_bytes, uint32_size;
+	size_t u8_bytes, u32_bytes;
 	unsigned char *u8_object0, *u8_object1;
 	unsigned int *u32_object0, *u32_object1;
 	
@@ -298,10 +297,9 @@ void student_object_swap(struct _student_object *restrict object0,
 	u8_object1 = (unsigned char *)object1;
 	u32_object0 = (unsigned int *)object0;
 	u32_object1 = (unsigned int *)object1;
-	uint32_size = sizeof(unsigned int);
 
-	if (u8_bytes >= uint32_size)
-		u32_bytes = u8_bytes / uint32_size;
+	if (u8_bytes >= uint32_sizeof)
+		u32_bytes = u8_bytes / uint32_sizeof;
 	else
 		u32_bytes = 0;
 
@@ -310,7 +308,7 @@ void student_object_swap(struct _student_object *restrict object0,
 		++u32_object0;
 		++u32_object1;
 
-		u8_bytes -= uint32_size;
+		u8_bytes -= uint32_sizeof;
 	}
 	
 	while (u8_bytes--) {
@@ -322,7 +320,7 @@ void student_object_swap(struct _student_object *restrict object0,
 
 void student_object_scores_sum(struct _student_object *object)
 {
-	size_t member_count;
+	student_base_t member_count;
 	float *f32_object;
 
 	member_count = sizeof(struct _student_scores) / sizeof(float);
@@ -337,36 +335,43 @@ void student_object_scores_sum(struct _student_object *object)
 
 void student_list_sort_by_score(struct _student_list *list)
 {
-	student_base_t count;
-	struct _student_list *list_node;
+	struct _student_list *list_start_ptr, *list_temp;
 
 	if (list_is_empty(list))
 		return;
 	
-	count = student_list_count(list);
-	while (--count) {
-		list_node = list;
-		while (! list_next_is_null(list_node)) {
-			if ((list_node->student.scores.total)
-			    > (list_node->next->student.scores.total))
-				student_object_swap((struct _student_object *)(list_node),
-						    (struct _student_object *)(list_node->next));
+	list_start_ptr = list;
+	while (list != NULL) {
+		list_temp = list_start_ptr;
+		while (! list_next_is_null(list_temp)) {
+			if ((list_temp->student.scores.total)
+			    > (list_temp->next->student.scores.total))
+				student_object_swap((struct _student_object *)(list_temp),
+						    (struct _student_object *)(list_temp->next));
 
-			list_generate_next(list_node);
+			list_generate_next(list_temp);
 		}
+
+		list = list->next;
 	}
 }
 
-void student_list_delete(struct _student_list *list)
+void student_list_clear(struct _student_list **restrict list)
 {
-	if (list_is_empty(list))
+	while (student_list_remove(list, (struct _student_object *)(*list))
+		!= STUDENT_CAN_NOT_REMOVE)
+		continue;
+}
+
+void student_list_delete(struct _student_list **restrict list)
+{
+	if (list_is_empty(*list))
 		goto free_self;
 
-	while (student_list_remove(&list, (struct _student_object *)list) 
-	      != STUDENT_CAN_NOT_REMOVE)
-		continue;
+	student_list_clear(list);
 	
 free_self:
-	free(list);
+	free(*list);
+	*list = NULL;
 }
 
