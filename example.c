@@ -553,6 +553,6 @@ int main(void)
 	}
 
 	/* 退出前释放学生列表 */
-	student_list_delete(student_list);
+	student_list_delete(&student_list);
 	return 0;
 }
