@@ -12,11 +12,11 @@ a.out: *.c
 
 windows: StudentManager.exe StudentManager-GBK.exe
 
-StudentManager.exe:
-	$(W32CC) $(CFLAGS) -o $@
+StudentManager.exe: *.c
+	$(W32CC) $(CFLAGS) -o $@ $^
 
-StudentManager-GBK.exe:
-	$(W32CC) $(CFLAGS) -fexec-charset=GBK -o $@
+StudentManager-GBK.exe: *.c
+	$(W32CC) $(CFLAGS) -fexec-charset=GBK -o $@ $^
 
 PHONY += clean
 clean:
