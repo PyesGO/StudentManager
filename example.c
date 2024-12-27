@@ -555,7 +555,7 @@ int main(void)
 		}
 	}
 
-	/* 退出前清空学生列表 */
+	/* 退出前释放学生列表 */
 	student_list_delete(student_list);
 	return 0;
 }
