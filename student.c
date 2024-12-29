@@ -335,14 +335,14 @@ void student_object_scores_sum(struct _student_object *object)
 
 void student_list_sort_by_score(struct _student_list *list)
 {
-	struct _student_list *list_start_ptr, *list_temp;
+	struct _student_list *list_head, *list_temp;
 
 	if (list_is_empty(list))
 		return;
 	
-	list_start_ptr = list;
+	list_head = list;
 	while (list != NULL) {
-		list_temp = list_start_ptr;
+		list_temp = list_head;
 		while (! list_next_is_null(list_temp)) {
 			if ((list_temp->student.scores.total)
 			    > (list_temp->next->student.scores.total))
