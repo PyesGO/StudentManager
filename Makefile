@@ -10,6 +10,7 @@ __all: a.out
 a.out: *.c
 	$(CC) $(CFLAGS) -o $@ $^
 
+PHONY += windows
 windows: StudentManager.exe StudentManager-GBK.exe
 
 StudentManager.exe: *.c
@@ -21,5 +22,9 @@ StudentManager-GBK.exe: *.c
 PHONY += clean
 clean:
 	rm -f *.out
+
+PHONY += clean_windows
+clean_windows:
+	rm -f *.exe
 
 .PHONY = PHONY
