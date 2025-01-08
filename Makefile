@@ -27,4 +27,4 @@ PHONY += clean_windows
 clean_windows:
 	rm -f *.exe
 
-.PHONY = PHONY
+.PHONY: $(PHONY)
